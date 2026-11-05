@@ -19,7 +19,7 @@ La lista inicial se carga desde la migración de Supabase a partir de `Integrant
 Supabase es el backend (base de datos, autenticación y función de correo). Vercel publicará los archivos estáticos del sitio.
 
 1. Crea un proyecto en Supabase.
-2. En **SQL Editor**, ejecuta en orden `supabase/migrations/20261105000000_intercambio.sql` y después `supabase/migrations/20261105120000_privacidad_y_asistencia.sql` (login por nombre, asistencia Sí/No y subfamilia visible solo para administración; la lista de nombres para entrar es pública, sin familias).
+2. En **SQL Editor**, ejecuta en orden `supabase/migrations/20261105000000_intercambio.sql` y después `supabase/migrations/20261105120000_privacidad_y_asistencia.sql` y `supabase/migrations/20261105180000_solicitudes_registro.sql` (solicitudes de personas no registradas: no reciben código hasta que administración les asigne familia y los apruebe) (login por nombre, asistencia Sí/No y subfamilia visible solo para administración; la lista de nombres para entrar es pública, sin familias).
 3. En **Project Settings → API**, copia la URL del proyecto y la clave pública `anon`/publishable en `supabase-config.js`. Esos valores son visibles desde el navegador; nunca pongas una clave `service_role` en ese archivo.
 4. En **Authentication**, configura el proveedor de correo/SMTP para entregar los códigos de acceso a todos los familiares. En **Authentication → Emails → Magic link**, el cuerpo de la plantilla debe incluir `{{ .Token }}` (por ejemplo: `Tu código es: {{ .Token }}`); de lo contrario el correo solo traerá un enlace. Agrega la URL final del sitio a las URLs permitidas de redirección.
 5. Para probarlo localmente, inicia `py -m http.server 8000` y abre `http://localhost:8000`.

@@ -19,7 +19,6 @@ const el = Object.fromEntries(
     "whoSelect",
     "missingFields",
     "missingName",
-    "missingSubfamily",
     "emailInput",
     "codeForm",
     "codeInput",
@@ -283,46 +282,45 @@ function renderAdmin() {
   if (participants.length === 0) addListItem(el.adminRoster, "No hay integrantes registrados.");
 
   el.claimsList.replaceChildren();
-  const pendingClaims = claims.filter((claim) => claim.status === "pending");
-  if (pendingClaims.length === 0) addListItem(el.claimsList, "No hay solicitudes pendientes.");
-  pendingClaims.forEach((claim) => {
+  if (claims.length === 0) addListItem(el.claimsList, "No hay solicitudes pendientes.");
+  claims.forEach((request) => {
     const item = document.createElement("li");
     item.className = "claim-item";
     const info = document.createElement("span");
-    info.textContent = `${claim.proposed_name} (${claim.requester_email}) · ${claim.proposed_subfamily}`;
-    const select = document.createElement("select");
-    select.setAttribute("aria-label", `Vincular solicitud de ${claim.proposed_name}`);
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "Elegir integrante";
-    select.append(placeholder);
-    participants
-      .filter((person) => !person.user_id && !person.excluded_at)
-      .forEach((person) => {
-        const option = document.createElement("option");
-        option.value = person.id;
-        option.textContent = `${person.name} · ${person.subfamily}`;
-        select.append(option);
+    info.textContent = `${request.name} (${request.email})`;
+    const familyInput = document.createElement("input");
+    familyInput.placeholder = "Familia (ej. Familia 3)";
+    familyInput.maxLength = 80;
+    familyInput.setAttribute("aria-label", `Familia de ${request.name}`);
+    item.append(info, familyInput);
+    [
+      ["Aprobar y agregar", true, "button button-dark"],
+      ["Rechazar", false, "text-button"],
+    ].forEach(([label, approve, className]) => {
+      const button = document.createElement("button");
+      button.className = className;
+      button.type = "button";
+      button.textContent = label;
+      button.addEventListener("click", async () => {
+        if (approve && !familyInput.value.trim()) {
+          showMessage(el.adminMessage, "Escribe la familia antes de aprobar.", true);
+          familyInput.focus();
+          return;
+        }
+        try {
+          const { error } = await db.rpc("admin_resolve_request", {
+            p_request_id: request.id,
+            p_approve: approve,
+            p_subfamily: familyInput.value.trim() || null,
+          });
+          if (error) throw error;
+          await Promise.all([refresh(), loadLoginNames()]);
+        } catch (error) {
+          showError(error, el.adminMessage);
+        }
       });
-    const button = document.createElement("button");
-    button.className = "button button-dark";
-    button.type = "button";
-    button.textContent = "Vincular";
-    button.disabled = select.options.length < 2;
-    button.addEventListener("click", async () => {
-      if (!select.value) return;
-      try {
-        const { error } = await db.rpc("admin_link_claim", {
-          p_claim_id: claim.id,
-          p_participant_id: select.value,
-        });
-        if (error) throw error;
-        await refresh();
-      } catch (error) {
-        showError(error, el.adminMessage);
-      }
+      item.append(button);
     });
-    item.append(info, select, button);
     el.claimsList.append(item);
   });
 
@@ -393,16 +391,6 @@ async function applyPendingLogin() {
       p_participant_id: pending.participantId,
     });
     if (error) showError(error);
-  } else if (pending.missing) {
-    const { error } = await db.functions.invoke("missing-member", { body: pending.missing });
-    if (error) {
-      showMessage(el.globalMessage, await functionErrorMessage(error), true);
-    } else {
-      showMessage(
-        el.globalMessage,
-        "Integrante no registrado: avisamos al administrador para que te agregue.",
-      );
-    }
   }
 }
 
@@ -487,10 +475,7 @@ async function loadAll() {
       viewedParticipantIds = new Set(
         (viewsResult.data ?? []).map((view) => view.participant_id),
       );
-      const claimsResult = await db
-        .from("participant_claims")
-        .select("id,user_id,requester_email,proposed_name,proposed_subfamily,status,created_at")
-        .order("created_at");
+      const claimsResult = await db.rpc("admin_registration_requests");
       if (claimsResult.error) throw claimsResult.error;
       claims = claimsResult.data ?? [];
     } else {
@@ -585,26 +570,39 @@ el.whoSelect.addEventListener("change", () => {
   const missing = el.whoSelect.value === MISSING_OPTION;
   el.missingFields.hidden = !missing;
   el.missingName.required = missing;
-  el.missingSubfamily.required = missing;
 });
 
 el.authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const missing = el.whoSelect.value === MISSING_OPTION;
-  const pending = missing
-    ? {
-        missing: {
-          name: el.missingName.value.trim(),
-          subfamily: el.missingSubfamily.value.trim(),
-        },
-      }
-    : { participantId: el.whoSelect.value };
+  const email = el.emailInput.value.trim();
+
+  if (el.whoSelect.value === MISSING_OPTION) {
+    showMessage(el.authMessage, "Enviando solicitud…");
+    try {
+      const { data: requestId, error } = await db.rpc("submit_registration_request", {
+        p_name: el.missingName.value.trim(),
+        p_email: email,
+      });
+      if (error) throw error;
+      const notice = await db.functions.invoke("missing-member", {
+        body: { request_id: requestId },
+      });
+      if (notice.error) console.error(notice.error);
+      showMessage(
+        el.authMessage,
+        "Integrante no registrado. Avisamos al administrador; cuando te agregue, vuelve a entrar y elige tu nombre para recibir tu código.",
+      );
+    } catch (error) {
+      showError(error, el.authMessage);
+    }
+    return;
+  }
 
   showMessage(el.authMessage, "Enviando código…");
   try {
-    const { error } = await db.auth.signInWithOtp({ email: el.emailInput.value.trim() });
+    const { error } = await db.auth.signInWithOtp({ email });
     if (error) throw error;
-    localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+    localStorage.setItem(PENDING_KEY, JSON.stringify({ participantId: el.whoSelect.value }));
     el.authForm.hidden = true;
     el.codeForm.hidden = false;
     el.codeInput.focus();
