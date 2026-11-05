@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Organiza el intercambio familiar navideño y descubre a quién regalarle."
+    />
+    <title>Intercambio familiar navideño</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow"><span aria-hidden="true">✦</span> Una tradición para compartir</p>
+        <h1>Intercambio <span>familiar</span></h1>
+        <p class="intro">
+          Reúnan sus nombres, hagan el sorteo y descubran en secreto a quién le toca
+          sorprender.
+        </p>
+        <p class="local-note"><span aria-hidden="true">🔒</span> Los nombres se guardan solo en este dispositivo</p>
+      </header>
+
+      <section class="card" id="setupPanel" aria-labelledby="setupTitle">
+        <div class="section-heading">
+          <span class="step">01</span>
+          <div>
+            <h2 id="setupTitle">¿Quiénes participan?</h2>
+            <p>Agrega al menos dos integrantes de la familia.</p>
+          </div>
+        </div>
+
+        <form id="nameForm" class="add-form">
+          <label class="sr-only" for="nameInput">Nombre del participante</label>
+          <input
+            id="nameInput"
+            name="name"
+            type="text"
+            maxlength="50"
+            placeholder="Escribe un nombre"
+            autocomplete="off"
+            required
+          />
+          <button class="button button-dark" type="submit">Agregar <span aria-hidden="true">+</span></button>
+        </form>
+        <p id="formMessage" class="message" aria-live="polite"></p>
+
+        <div class="participant-heading">
+          <h3>Integrantes <span id="participantCount" class="count">0</span></h3>
+          <span id="participantHint" class="hint">Mínimo 2</span>
+        </div>
+        <ul id="participantList" class="participant-list" aria-label="Integrantes del sorteo"></ul>
+
+        <button id="drawButton" class="button button-primary draw-button" type="button" disabled>
+          Hacer el sorteo <span aria-hidden="true">→</span>
+        </button>
+      </section>
+
+      <section class="card draw-card" id="drawPanel" aria-labelledby="drawTitle" hidden>
+        <div class="section-heading">
+          <span class="step">02</span>
+          <div>
+            <h2 id="drawTitle">Descubre tu persona</h2>
+            <p>Cada integrante elige su nombre y mira su resultado en privado.</p>
+          </div>
+        </div>
+
+        <label class="field-label" for="participantSelect">Soy…</label>
+        <div class="reveal-controls">
+          <select id="participantSelect">
+            <option value="">Elige tu nombre</option>
+          </select>
+          <button id="revealButton" class="button button-primary" type="button" disabled>
+            Revelar
+          </button>
+        </div>
+
+        <div id="result" class="result" role="status" aria-live="polite" hidden>
+          <span class="result-label">Te toca regalarle a</span>
+          <strong id="recipientName"></strong>
+          <button id="hideResultButton" class="text-button" type="button">Ocultar resultado</button>
+        </div>
+
+        <p class="privacy-hint">
+          Pasen el dispositivo de uno en uno. Recuerden su resultado y ocúltenlo antes de
+          que siga la próxima persona.
+        </p>
+        <button id="editButton" class="text-button edit-button" type="button">
+          Editar participantes y sortear de nuevo
+        </button>
+      </section>
+
+      <footer>Hecho para compartir la alegría de regalar <span aria-hidden="true">♥</span></footer>
+    </main>
+  </body>
+</html>
