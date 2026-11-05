@@ -19,6 +19,7 @@ const el = Object.fromEntries(
     "whoSelect",
     "missingFields",
     "missingName",
+    "authSubmitButton",
     "emailInput",
     "codeForm",
     "codeInput",
@@ -566,11 +567,14 @@ async function signOut() {
   }
 }
 
-el.whoSelect.addEventListener("change", () => {
+function updateAuthMode() {
   const missing = el.whoSelect.value === MISSING_OPTION;
   el.missingFields.hidden = !missing;
   el.missingName.required = missing;
-});
+  el.authSubmitButton.textContent = missing ? "Enviar solicitud" : "Enviarme un código";
+}
+
+el.whoSelect.addEventListener("change", updateAuthMode);
 
 el.authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -579,18 +583,16 @@ el.authForm.addEventListener("submit", async (event) => {
   if (el.whoSelect.value === MISSING_OPTION) {
     showMessage(el.authMessage, "Enviando solicitud…");
     try {
-      const { data: requestId, error } = await db.rpc("submit_registration_request", {
+      const { error } = await db.rpc("submit_registration_request", {
         p_name: el.missingName.value.trim(),
         p_email: email,
       });
       if (error) throw error;
-      const notice = await db.functions.invoke("missing-member", {
-        body: { request_id: requestId },
-      });
-      if (notice.error) console.error(notice.error);
+      el.authForm.reset();
+      updateAuthMode();
       showMessage(
         el.authMessage,
-        "Integrante no registrado. Avisamos al administrador; cuando te agregue, vuelve a entrar y elige tu nombre para recibir tu código.",
+        "Solicitud enviada. Cuando el administrador te agregue, vuelve a entrar y elige tu nombre para recibir tu código.",
       );
     } catch (error) {
       showError(error, el.authMessage);

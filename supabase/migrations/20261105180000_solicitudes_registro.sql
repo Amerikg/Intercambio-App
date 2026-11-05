@@ -34,9 +34,22 @@ begin
   select id into v_id from public.registration_requests
   where email = v_email and status = 'pending';
   if v_id is not null then
-    update public.registration_requests
-    set name = v_name where id = v_id;
-    return v_id;
+    raise exception 'Ya enviaste una solicitud con este correo. Espera a que el administrador te agregue.';
+  end if;
+
+  if exists (select 1 from public.participants where lower(btrim(name)) = lower(v_name)) then
+    raise exception 'Ese nombre ya está registrado. Elígelo en la lista para entrar.';
+  end if;
+
+  if exists (select 1 from auth.users where lower(email) = v_email) then
+    raise exception 'Este correo ya está registrado. Elige tu nombre en la lista para entrar.';
+  end if;
+
+  if exists (
+    select 1 from public.registration_requests
+    where status = 'pending' and lower(btrim(name)) = lower(v_name)
+  ) then
+    raise exception 'Ya existe una solicitud pendiente con ese nombre.';
   end if;
 
   insert into public.registration_requests (name, email)
