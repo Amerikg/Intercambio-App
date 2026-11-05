@@ -827,3 +827,116 @@ footer span {
     animation: none;
   }
 }
+
+/* Tema navideño */
+:root {
+  --green: #1d5a3a;
+  --green-dark: #123d27;
+  --red: #b3262e;
+  --gold: #c9973a;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 50% 0, rgba(179, 38, 46, 0.18), transparent 38rem),
+    linear-gradient(180deg, #123d27 0, #1a4d33 220px, #f4efe4 520px);
+  background-attachment: scroll;
+}
+
+.hero-lights {
+  height: 18px;
+  margin: -66px -16px 48px;
+  background:
+    radial-gradient(circle at 12px 10px, #e23b3b 0 5px, transparent 6px) 0 0 / 48px 18px repeat-x,
+    radial-gradient(circle at 36px 10px, #f2c14e 0 5px, transparent 6px) 0 0 / 48px 18px repeat-x;
+  animation: lights-blink 2.4s ease-in-out infinite;
+}
+
+.hero .eyebrow {
+  color: var(--gold);
+}
+
+.hero h1 {
+  color: #fff;
+}
+
+.hero h1 span {
+  color: #f2c14e;
+}
+
+.hero .intro {
+  color: #d7e6da;
+}
+
+.card {
+  border-color: #e7dcc3;
+  border-top: 4px solid var(--red);
+  background: #fffdf8;
+}
+
+.step {
+  background: var(--green);
+  color: #fff;
+}
+
+.button-primary {
+  background: var(--red);
+}
+
+.button-primary:not(:disabled):hover {
+  background: #8f1d24;
+}
+
+.tab-button.is-active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.account-bar {
+  color: #e6efe8;
+}
+
+.account-bar .text-button {
+  color: #f2c14e;
+}
+
+footer {
+  color: var(--green-dark);
+}
+
+.snow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.snow i {
+  position: absolute;
+  top: -12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+  animation: snow-fall linear infinite;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes snow-fall {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(var(--sway), 105vh); }
+}
+
+@keyframes lights-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-lights { animation: none; }
+}

@@ -472,9 +472,12 @@ async function loadAll() {
 
     const assignmentResult = await db.from("assignments").select("giver_id,recipient_id");
     if (assignmentResult.error) throw assignmentResult.error;
+    const ownAssignment = assignmentResult.data?.find((entry) => entry.giver_id === ownId);
+    const ownRecipient = participants.find((person) => person.id === ownAssignment?.recipient_id);
+    myAssignment =
+      ownAssignment && ownRecipient ? { ...ownAssignment, recipientName: ownRecipient.name } : null;
     if (isAdmin) {
       allAssignments = assignmentResult.data ?? [];
-      myAssignment = null;
       const viewsResult = await db.from("assignment_views").select("participant_id");
       if (viewsResult.error) throw viewsResult.error;
       viewedParticipantIds = new Set(
@@ -487,9 +490,6 @@ async function loadAll() {
       allAssignments = [];
       viewedParticipantIds = new Set();
       claims = [];
-      const assignment = assignmentResult.data?.find((entry) => entry.giver_id === ownId);
-      const recipient = participants.find((person) => person.id === assignment?.recipient_id);
-      myAssignment = assignment && recipient ? { ...assignment, recipientName: recipient.name } : null;
     }
     render();
   } catch (error) {
