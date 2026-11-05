@@ -39,6 +39,11 @@ const el = Object.fromEntries(
     "myName",
     "attendanceStatus",
     "assignmentCard",
+    "revealButton",
+    "revealStage",
+    "revealLabel",
+    "confetti",
+    "revealHint",
     "recipientName",
     "wishlistForm",
     "tastesInput",
@@ -134,7 +139,6 @@ function setView(viewId) {
   document.querySelectorAll(".tab-button").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.view === viewId);
   });
-  if (viewId === "drawView") markAssignmentViewed();
 }
 
 async function setAttendance(attending) {
@@ -361,7 +365,7 @@ function render() {
         ? "Tu asistencia está confirmada."
         : `Responde en Inicio si asistirás antes del ${formatDeadline(settings?.deadline)}.`;
     el.assignmentCard.hidden = !myAssignment;
-    if (myAssignment) el.recipientName.textContent = myAssignment.recipientName;
+    if (myAssignment) renderRevealState();
   }
 
   el.drawStatus.textContent = myAssignment
@@ -488,7 +492,6 @@ async function loadAll() {
       myAssignment = assignment && recipient ? { ...assignment, recipientName: recipient.name } : null;
     }
     render();
-    if (currentView === "drawView" && myAssignment) markAssignmentViewed();
   } catch (error) {
     showError(error);
   }
@@ -510,6 +513,77 @@ async function refresh() {
     refreshRunning = false;
   }
 }
+
+const REVEAL_KEY_PREFIX = "intercambio-revelado-";
+let revealing = false;
+
+function hasRevealed() {
+  return Boolean(myParticipant) && localStorage.getItem(REVEAL_KEY_PREFIX + myParticipant.id) === "1";
+}
+
+// Muestra el resultado ya revelado o el botón para obtenerlo; no interrumpe la animación.
+function renderRevealState() {
+  if (revealing) return;
+  const revealed = hasRevealed();
+  el.revealButton.hidden = revealed;
+  el.revealStage.hidden = !revealed;
+  el.revealHint.hidden = !revealed;
+  if (revealed) {
+    el.revealLabel.textContent = "Te toca regalarle a";
+    el.recipientName.textContent = myAssignment.recipientName;
+    el.recipientName.classList.add("is-final");
+  }
+}
+
+function launchConfetti() {
+  const colors = ["#a64b44", "#214e3c", "#d9a441", "#f2d7a6", "#6f9f82"];
+  el.confetti.replaceChildren();
+  for (let index = 0; index < 36; index += 1) {
+    const piece = document.createElement("i");
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[index % colors.length];
+    piece.style.animationDelay = `${Math.random() * 0.4}s`;
+    piece.style.setProperty("--drift", `${Math.round(Math.random() * 120 - 60)}px`);
+    el.confetti.append(piece);
+  }
+  window.setTimeout(() => el.confetti.replaceChildren(), 3500);
+}
+
+// Ruleta de nombres que se frena poco a poco hasta mostrar el resultado real.
+async function revealAssignment() {
+  if (!myAssignment || revealing) return;
+  revealing = true;
+  el.revealButton.hidden = true;
+  el.revealStage.hidden = false;
+  el.revealHint.hidden = true;
+  el.revealLabel.textContent = "Sorteando…";
+  el.recipientName.classList.remove("is-final");
+  el.recipientName.classList.add("is-spinning");
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const pool = participants
+    .filter((person) => person.id !== myParticipant.id && !person.excluded_at)
+    .map((person) => person.name);
+  const steps = reduceMotion || pool.length === 0 ? 0 : 26;
+
+  for (let step = 0; step < steps; step += 1) {
+    el.recipientName.textContent = pool[Math.floor(Math.random() * pool.length)];
+    await new Promise((resolve) => window.setTimeout(resolve, 60 + step * step * 0.9));
+  }
+
+  el.recipientName.classList.remove("is-spinning");
+  el.recipientName.textContent = myAssignment.recipientName;
+  el.recipientName.classList.add("is-final");
+  el.revealLabel.textContent = "Te toca regalarle a";
+  el.revealHint.hidden = false;
+  if (!reduceMotion) launchConfetti();
+
+  localStorage.setItem(REVEAL_KEY_PREFIX + myParticipant.id, "1");
+  revealing = false;
+  markAssignmentViewed();
+}
+
+el.revealButton.addEventListener("click", revealAssignment);
 
 async function markAssignmentViewed() {
   if (!myParticipant || !myAssignment || viewedAssignmentParticipantId === myParticipant.id) return;

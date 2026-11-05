@@ -132,9 +132,15 @@
               <p class="participant-identity">Participas como <strong id="myName"></strong></p>
               <p id="attendanceStatus" class="notice"></p>
               <div id="assignmentCard" class="result" hidden>
-                <span class="result-label">Te toca regalarle a</span>
-                <strong id="recipientName"></strong>
-                <p class="privacy-hint">No compartas este resultado. Vuelve a esta sección para consultarlo.</p>
+                <button id="revealButton" class="button button-primary reveal-button" type="button">
+                  🎁 Obtener mi nombre
+                </button>
+                <div id="revealStage" class="reveal-stage" aria-live="polite" hidden>
+                  <span class="result-label" id="revealLabel">Sorteando…</span>
+                  <strong id="recipientName" class="reveal-name"></strong>
+                  <div id="confetti" class="confetti" aria-hidden="true"></div>
+                </div>
+                <p id="revealHint" class="privacy-hint" hidden>No compartas este resultado. Puedes volver a verlo cuando quieras.</p>
               </div>
             </div>
           </div>
