@@ -37,7 +37,7 @@ button {
 }
 
 .page {
-  width: min(100% - 32px, 600px);
+  width: min(100% - 32px, 920px);
   margin: 0 auto;
   padding: 66px 0 28px;
 }
@@ -395,6 +395,293 @@ footer span {
   clip-path: inset(50%);
 }
 
+.narrow-card {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.stack-form {
+  display: grid;
+  gap: 10px;
+}
+
+.stack-form input,
+.stack-form textarea,
+.stack-form select,
+.add-form input,
+.claim-item select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #ddded5;
+  border-radius: 9px;
+  outline: none;
+  background: #fff;
+  color: #233b31;
+}
+
+.stack-form input:focus,
+.stack-form textarea:focus,
+.stack-form select:focus,
+.add-form input:focus,
+.claim-item select:focus {
+  border-color: #638571;
+  box-shadow: 0 0 0 3px rgba(99, 133, 113, 0.15);
+}
+
+.stack-form textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.stack-form .button {
+  width: 100%;
+}
+
+.notice {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #e6e9df;
+  border-radius: 10px;
+  background: #f5f7f0;
+  color: #536258;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.notice-error,
+.message-error {
+  border-color: #edd4d0;
+  background: #fbf1ef;
+  color: #963f38;
+}
+
+.account-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 14px;
+  color: #68756c;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.tab-button {
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid #dfe4dc;
+  border-radius: 999px;
+  background: #fffefa;
+  color: #536258;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.tab-button.is-active {
+  border-color: var(--green);
+  background: var(--green);
+  color: #fff;
+}
+
+.tab-button:focus-visible,
+.button:focus-visible {
+  outline: 3px solid #b5c8b7;
+  outline-offset: 3px;
+}
+
+.view .card {
+  margin-bottom: 16px;
+}
+
+.welcome-card h2 {
+  font-size: clamp(1.7rem, 5vw, 2.4rem);
+}
+
+.body-copy {
+  color: #69756e;
+  line-height: 1.6;
+}
+
+.home-actions,
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.rules-list {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0 0;
+  padding-left: 22px;
+  color: #536258;
+  line-height: 1.5;
+}
+
+.subcard {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.subcard h3,
+.card > h3 {
+  margin: 0 0 12px;
+  color: var(--green-dark);
+  font-family: Georgia, serif;
+  font-size: 1.1rem;
+}
+
+.participant-identity {
+  margin: 0 0 12px;
+  color: #536258;
+}
+
+.roster-list,
+.admin-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.roster-item,
+.admin-list > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #f0eee7;
+  border-radius: 9px;
+  color: #526056;
+  font-size: 0.87rem;
+  line-height: 1.45;
+}
+
+.roster-item span {
+  color: #78827a;
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.roster-item .roster-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.status-yes { color: #2f7d4f; }
+.status-no { color: #b03a3a; }
+
+.attend-question {
+  color: #526056;
+  font-weight: 600;
+}
+
+.attend-button {
+  padding: 5px 10px;
+  border: 1px solid #d8d6cc;
+  border-radius: 999px;
+  background: #fff;
+  color: #526056;
+  font: inherit;
+  cursor: pointer;
+}
+
+.attend-button.is-active {
+  border-color: #2f7d4f;
+  background: #2f7d4f;
+  color: #fff;
+}
+
+.attend-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.is-muted {
+  opacity: 0.62;
+}
+
+.result {
+  margin-top: 20px;
+}
+
+.wishlist-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.wish-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #eeece4;
+  border-radius: 14px;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+
+.wish-card h3 {
+  margin: 0 0 4px;
+  color: var(--green-dark);
+  font-family: Georgia, serif;
+  font-size: 1.2rem;
+}
+
+.wish-card h4 {
+  margin: 16px 0 5px;
+  color: #536258;
+  font-size: 0.8rem;
+}
+
+.wish-card p {
+  margin-bottom: 0;
+  color: #69756e;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.wish-card .wish-subfamily {
+  font-size: 0.76rem;
+}
+
+.claim-item {
+  display: grid !important;
+  grid-template-columns: minmax(140px, 1fr) minmax(150px, 0.8fr) auto;
+}
+
+.claim-item .button {
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.admin-assignments {
+  margin-top: 24px;
+}
+
+.global-message {
+  max-width: 600px;
+  margin: 12px auto;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -432,6 +719,34 @@ footer span {
 
   .reveal-controls .button {
     width: 100%;
+  }
+
+  .page {
+    width: min(100% - 24px, 920px);
+  }
+
+  .home-actions,
+  .admin-actions {
+    flex-direction: column;
+  }
+
+  .home-actions .button,
+  .admin-actions .button {
+    width: 100%;
+  }
+
+  .roster-item,
+  .admin-list > li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .roster-item span {
+    text-align: left;
+  }
+
+  .claim-item {
+    grid-template-columns: 1fr;
   }
 }
 

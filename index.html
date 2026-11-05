@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Organiza el intercambio familiar navideño y descubre a quién regalarle."
+      content="Organiza el intercambio familiar, confirma asistencia y comparte ideas de regalos."
     />
     <title>Intercambio familiar navideño</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -18,81 +20,194 @@
         <p class="eyebrow"><span aria-hidden="true">✦</span> Una tradición para compartir</p>
         <h1>Intercambio <span>familiar</span></h1>
         <p class="intro">
-          Reúnan sus nombres, hagan el sorteo y descubran en secreto a quién le toca
-          sorprender.
+          Confirmen su lugar, compartan sus ideas de regalo y prepárense para sorprender.
         </p>
-        <p class="local-note"><span aria-hidden="true">🔒</span> Los nombres se guardan solo en este dispositivo</p>
       </header>
 
-      <section class="card" id="setupPanel" aria-labelledby="setupTitle">
+      <div id="configWarning" class="notice notice-error" role="alert" hidden>
+        Falta configurar Supabase. Sigue los pasos de configuración del README para conectar la aplicación.
+      </div>
+
+      <section id="authPanel" class="card narrow-card" aria-labelledby="authTitle" hidden>
         <div class="section-heading">
           <span class="step">01</span>
           <div>
-            <h2 id="setupTitle">¿Quiénes participan?</h2>
-            <p>Agrega al menos dos integrantes de la familia.</p>
+            <h2 id="authTitle">¿Quién eres?</h2>
+            <p>Elige tu nombre y verifica tu correo para entrar.</p>
           </div>
         </div>
-
-        <form id="nameForm" class="add-form">
-          <label class="sr-only" for="nameInput">Nombre del participante</label>
-          <input
-            id="nameInput"
-            name="name"
-            type="text"
-            maxlength="50"
-            placeholder="Escribe un nombre"
-            autocomplete="off"
-            required
-          />
-          <button class="button button-dark" type="submit">Agregar <span aria-hidden="true">+</span></button>
-        </form>
-        <p id="formMessage" class="message" aria-live="polite"></p>
-
-        <div class="participant-heading">
-          <h3>Integrantes <span id="participantCount" class="count">0</span></h3>
-          <span id="participantHint" class="hint">Mínimo 2</span>
-        </div>
-        <ul id="participantList" class="participant-list" aria-label="Integrantes del sorteo"></ul>
-
-        <button id="drawButton" class="button button-primary draw-button" type="button" disabled>
-          Hacer el sorteo <span aria-hidden="true">→</span>
-        </button>
-      </section>
-
-      <section class="card draw-card" id="drawPanel" aria-labelledby="drawTitle" hidden>
-        <div class="section-heading">
-          <span class="step">02</span>
-          <div>
-            <h2 id="drawTitle">Descubre tu persona</h2>
-            <p>Cada integrante elige su nombre y mira su resultado en privado.</p>
-          </div>
-        </div>
-
-        <label class="field-label" for="participantSelect">Soy…</label>
-        <div class="reveal-controls">
-          <select id="participantSelect">
+        <form id="authForm" class="stack-form">
+          <label class="field-label" for="whoSelect">Mi nombre</label>
+          <select id="whoSelect" required>
             <option value="">Elige tu nombre</option>
           </select>
-          <button id="revealButton" class="button button-primary" type="button" disabled>
-            Revelar
-          </button>
-        </div>
-
-        <div id="result" class="result" role="status" aria-live="polite" hidden>
-          <span class="result-label">Te toca regalarle a</span>
-          <strong id="recipientName"></strong>
-          <button id="hideResultButton" class="text-button" type="button">Ocultar resultado</button>
-        </div>
-
-        <p class="privacy-hint">
-          Pasen el dispositivo de uno en uno. Recuerden su resultado y ocúltenlo antes de
-          que siga la próxima persona.
-        </p>
-        <button id="editButton" class="text-button edit-button" type="button">
-          Editar participantes y sortear de nuevo
-        </button>
+          <div id="missingFields" class="stack-form" hidden>
+            <p class="notice">
+              Avisaremos al administrador para que te agregue. Escribe tus datos y tu correo.
+            </p>
+            <label class="field-label" for="missingName">Tu nombre completo</label>
+            <input id="missingName" name="missingName" maxlength="80" autocomplete="name" />
+            <label class="field-label" for="missingSubfamily">Tu familia</label>
+            <input id="missingSubfamily" name="missingSubfamily" maxlength="80" />
+          </div>
+          <label class="field-label" for="emailInput">Correo electrónico</label>
+          <input id="emailInput" name="email" type="email" autocomplete="email" required />
+          <button class="button button-primary" type="submit">Enviarme un código</button>
+        </form>
+        <form id="codeForm" class="stack-form" hidden>
+          <label class="field-label" for="codeInput">Código de verificación</label>
+          <input id="codeInput" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required />
+          <button class="button button-primary" type="submit">Entrar</button>
+          <button id="changeEmailButton" class="text-button" type="button">Cambiar nombre o correo</button>
+        </form>
+        <p id="authMessage" class="message" aria-live="polite"></p>
       </section>
 
+      <section id="appPanel" hidden>
+        <div class="account-bar">
+          <span id="accountEmail"></span>
+          <button id="signOutButton" class="text-button" type="button">Cerrar sesión</button>
+        </div>
+
+        <nav class="tabs" aria-label="Secciones del intercambio">
+          <button class="tab-button is-active" type="button" data-view="homeView">Inicio</button>
+          <button class="tab-button" type="button" data-view="drawView">Sorteo</button>
+          <button class="tab-button" type="button" data-view="wishlistView">Tablero de regalos</button>
+          <button id="adminTab" class="tab-button" type="button" data-view="adminView" hidden>
+            Administración
+          </button>
+        </nav>
+
+        <section id="homeView" class="view">
+          <div class="card welcome-card">
+            <p class="eyebrow">Intercambio 2026</p>
+            <h2>¡Qué alegría compartir!</h2>
+            <p id="welcomeMessage" class="body-copy"></p>
+            <div class="home-actions">
+              <button class="button button-primary" type="button" data-go="drawView">
+                Ir al sorteo
+              </button>
+              <button class="button button-dark" type="button" data-go="wishlistView">
+                Ver tablero de regalos
+              </button>
+            </div>
+          </div>
+
+          <section id="rosterCard" class="card" aria-labelledby="rosterTitle">
+            <h2 id="rosterTitle">¿Quiénes participan?</h2>
+            <ul id="rosterList" class="roster-list"></ul>
+            <p id="rosterMessage" class="message" aria-live="polite"></p>
+          </section>
+
+          <section class="card rules-card" aria-labelledby="rulesTitle">
+            <h2 id="rulesTitle">Acuerdos del intercambio</h2>
+            <ul class="rules-list">
+              <li>Guarda en secreto el nombre que te tocó.</li>
+              <li>Respeta el presupuesto acordado por la familia.</li>
+              <li>No olvides llevar tu regalo en Nochebuena.</li>
+            </ul>
+          </section>
+        </section>
+
+        <section id="drawView" class="view" hidden>
+          <div class="card">
+            <div class="section-heading">
+              <span class="step">02</span>
+              <div>
+                <h2>Tu lugar en el intercambio</h2>
+                <p id="drawStatus" class="body-copy"></p>
+              </div>
+            </div>
+
+            <div id="unlinkedPanel" class="subcard" hidden>
+              <h3>Tu cuenta aún no está vinculada</h3>
+              <p>
+                Cierra sesión y elige tu nombre en la lista. Si no apareces, elige
+                «No estoy en la lista» para avisar al administrador.
+              </p>
+              <button id="unlinkedSignOutButton" class="button button-dark" type="button">
+                Cerrar sesión y elegir mi nombre
+              </button>
+            </div>
+
+            <div id="participantPanel" hidden>
+              <p class="participant-identity">Participas como <strong id="myName"></strong></p>
+              <p id="attendanceStatus" class="notice"></p>
+              <div id="assignmentCard" class="result" hidden>
+                <span class="result-label">Te toca regalarle a</span>
+                <strong id="recipientName"></strong>
+                <p class="privacy-hint">No compartas este resultado. Vuelve a esta sección para consultarlo.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="wishlistView" class="view" hidden>
+          <div class="card">
+            <div class="section-heading">
+              <span class="step">03</span>
+              <div>
+                <h2>Tablero de regalos</h2>
+                <p>Comparte tus gustos e ideas; la familia podrá consultarlos.</p>
+              </div>
+            </div>
+            <form id="wishlistForm" class="stack-form wishlist-form" hidden>
+              <label class="field-label" for="tastesInput">Mis gustos (colores, actividades, estilos…)</label>
+              <textarea id="tastesInput" maxlength="1000" rows="3"></textarea>
+              <label class="field-label" for="wishlistInput">Ideas para regalar</label>
+              <textarea id="wishlistInput" maxlength="1500" rows="4"></textarea>
+              <button class="button button-primary" type="submit">Guardar mis ideas</button>
+              <p id="wishlistMessage" class="message" aria-live="polite"></p>
+            </form>
+            <p id="wishlistGuestMessage" class="body-copy"></p>
+            <div id="wishlistBoard" class="wishlist-board"></div>
+          </div>
+        </section>
+
+        <section id="adminView" class="view" hidden>
+          <div class="card">
+            <div class="section-heading">
+              <span class="step">★</span>
+              <div>
+                <h2>Administración</h2>
+                <p>Controla confirmaciones y resultados del intercambio.</p>
+              </div>
+            </div>
+            <p id="adminStatus" class="notice"></p>
+            <div class="admin-actions">
+              <button id="refreshAdminButton" class="button button-dark" type="button">
+                Actualizar estado
+              </button>
+              <button id="closeAttendanceButton" class="button button-dark" type="button" hidden>
+                Cerrar confirmaciones vencidas
+              </button>
+              <button id="authorizeButton" class="button button-dark" type="button" hidden>
+                Autorizar el sorteo
+              </button>
+              <button id="createDrawButton" class="button button-primary" type="button" hidden>
+                Realizar sorteo
+              </button>
+            </div>
+            <h3>Integrantes, familias y asistencia</h3>
+            <ul id="adminRoster" class="admin-list"></ul>
+            <h3>Solicitudes de personas no registradas</h3>
+            <ul id="claimsList" class="admin-list"></ul>
+            <h3>Agregar integrante</h3>
+            <form id="addParticipantForm" class="add-form">
+              <input id="newName" name="name" maxlength="80" placeholder="Nombre" required />
+              <input id="newSubfamily" name="subfamily" maxlength="80" placeholder="Familia" required />
+              <button class="button button-dark" type="submit">Agregar</button>
+            </form>
+            <p id="adminMessage" class="message" aria-live="polite"></p>
+            <div id="adminAssignments" class="admin-assignments" hidden>
+              <h3>Resultados completos (solo administración)</h3>
+              <ul id="assignmentList" class="admin-list"></ul>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <p id="globalMessage" class="message global-message" aria-live="polite"></p>
       <footer>Hecho para compartir la alegría de regalar <span aria-hidden="true">♥</span></footer>
     </main>
   </body>
